@@ -41,5 +41,12 @@
   end
 
  macro case(v,e1...)
+  if(isa(v,Symbol))
    casen(v,e1)
+  else
+   let s = gensym()
+    :(let $(s) = $(v) ; $(casen(s,e1)) end)
+   end
+  end
+
  end
