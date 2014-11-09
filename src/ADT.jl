@@ -7,9 +7,11 @@
  end
 
  casev(v,np,e1) = let
-  spat(n::Symbol, p) = let s = gensym() ; (m) ->
+  extract(n::Symbol,v) = :($v.$n)
+  extract(n::Int,v) = :($v[$n])
+  spat(n, p) = let s = gensym() ; (m) ->
             :(let
-               $s = $v.$n
+               $s = $(extract(n, v))
                $(casev(s,np,:($p->$m)))
             end)
            end
@@ -24,6 +26,9 @@
      t = eval(p.args[1])
      es = map(spat, t.names, p.args[2:end])
      :(if(isa($v,$t)) ; $(pcomp(c,np,es)) else $np end)
+   elseif(p.head == :(tuple))
+     es = map(spat, 1:length(p.args), p.args)
+     :(if(isa($v,Tuple)) ; $(pcomp(c,np,es)) else $np end)
    elseif(p.head == :(::))
      (vn,t) = p.args
      :(if(isa($v,$t)) ; let $vn = $v ; $c end else ; $np end)
